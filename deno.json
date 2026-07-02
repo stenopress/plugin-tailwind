@@ -1,0 +1,11 @@
+{
+  "name": "@steno/plugin-tailwind",
+  "version": "0.3.0",
+  "exports": "./mod.ts",
+  "imports": {
+    "steno": "jsr:@steno/steno@0.3.0",
+    "@std/assert": "jsr:@std/assert",
+    "@std/path": "jsr:@std/path",
+    "@std/fs": "jsr:@std/fs"
+  }
+}
