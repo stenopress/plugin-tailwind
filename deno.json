@@ -6,6 +6,6 @@
     "steno": "jsr:@steno/steno@^0.10.0",
     "@std/assert": "jsr:@std/assert@1",
     "@std/path": "jsr:@std/path@1",
-    "@std/fs": "jsr:@std/fs@1"
+    "@std/fs": "jsr:@std/fs@1.0.24"
   }
 }
