@@ -21,9 +21,9 @@
  * @module
  */
 
-import type { SiteConfig, StenoPlugin } from "steno";
-import { join } from "@std/path";
 import { ensureDirSync } from "@std/fs";
+import { join } from "@std/path";
+import type { SiteConfig, StenoPlugin } from "steno";
 
 /**
  * Options for configuring the Tailwind plugin.
@@ -75,31 +75,18 @@ async function ensureTailwindToolchain(): Promise<void> {
 
   const install = new Deno.Command("npm", {
     cwd: toolchainDir,
-    args: [
-      "install",
-      "--silent",
-      "--no-audit",
-      "--no-fund",
-      "tailwindcss",
-      "@tailwindcss/cli",
-    ],
+    args: ["install", "--silent", "--no-audit", "--no-fund", "tailwindcss", "@tailwindcss/cli"],
     stdout: "piped",
     stderr: "piped",
   });
   const { code, stderr } = await install.output();
   if (code !== 0) {
     const error = new TextDecoder().decode(stderr);
-    throw new Error(
-      `Failed to install Tailwind CLI toolchain (exit code ${code}):\n${error}`,
-    );
+    throw new Error(`Failed to install Tailwind CLI toolchain (exit code ${code}):\n${error}`);
   }
 }
 
-function makeBuildInputCss(
-  sourceCss: string,
-  outputDir: string,
-  tailwindCssEntry: string,
-): string {
+function makeBuildInputCss(sourceCss: string, outputDir: string, tailwindCssEntry: string): string {
   const hasTailwindImport = /@import\s+["']tailwindcss["'];?/.test(sourceCss);
   const cssWithResolvedImport = hasTailwindImport
     ? sourceCss.replace(TAILWIND_IMPORT_RE, `@import "${tailwindCssEntry}";`)
@@ -111,26 +98,20 @@ function makeBuildInputCss(
 /**
  * Creates a Steno plugin that generates Tailwind CSS after each build.
  */
-export default function tailwindPlugin(
-  options: TailwindPluginOptions = {},
-): TailwindStenoPlugin {
+export default function tailwindPlugin(options: TailwindPluginOptions = {}): TailwindStenoPlugin {
   return {
     name: "steno-plugin-tailwind",
 
     afterBuild: async (config: SiteConfig) => {
       const outputDir = config.output ?? "dist";
-      const sourceDir = outputDir.startsWith("/")
-        ? outputDir
-        : join(Deno.cwd(), outputDir);
-      const assetsDir = join(outputDir, "assets");
+      const sourceDir = outputDir.startsWith("/") ? outputDir : join(Deno.cwd(), outputDir);
+      const assetsDir = join(sourceDir, "assets");
       const outputCss = join(assetsDir, "tailwind.css");
 
       ensureDirSync(assetsDir);
       await ensureTailwindToolchain();
 
-      const sourceCss = options.input
-        ? await Deno.readTextFile(options.input)
-        : DEFAULT_INPUT_CSS;
+      const sourceCss = options.input ? await Deno.readTextFile(options.input) : DEFAULT_INPUT_CSS;
       const buildInputCss = makeBuildInputCss(
         sourceCss,
         sourceDir,
@@ -139,13 +120,7 @@ export default function tailwindPlugin(
       const tempFile = await Deno.makeTempFile({ suffix: ".css" });
       await Deno.writeTextFile(tempFile, buildInputCss);
 
-      const args = [
-        "@tailwindcss/cli",
-        "-i",
-        tempFile,
-        "-o",
-        outputCss,
-      ];
+      const args = ["@tailwindcss/cli", "-i", tempFile, "-o", outputCss];
 
       if (options.minify) {
         args.push("--minify");
@@ -163,9 +138,7 @@ export default function tailwindPlugin(
 
         if (code !== 0) {
           const error = new TextDecoder().decode(stderr);
-          throw new Error(
-            `Tailwind CLI failed with exit code ${code}:\n${error}`,
-          );
+          throw new Error(`Tailwind CLI failed with exit code ${code}:\n${error}`);
         }
 
         console.log(`[steno-plugin-tailwind] Generated ${outputCss}`);
